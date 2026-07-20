@@ -21,9 +21,7 @@ module random_gaussian;
             u1 = ($urandom + 1.0) / 4294967296.0;
             u2 = ($urandom + 1.0) / 4294967296.0;
 
-            g = $sqrt(-2.0*$ln(u1))
-                *
-                $cos(2.0*3.1415926535*u2);
+            g = $sqrt(-2.0*$ln(u1))*$cos(2.0*3.1415926535*u2);
 
             value = g;
 
