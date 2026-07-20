@@ -12,7 +12,7 @@ module ldpc_syndrome
 
     input  logic start,
 
-    input  logic signed [7:0] app_llr
+    input  ldpc_pkg::llr_t app_llr
         [ldpc_pkg::N],
 
     output logic done,
@@ -42,6 +42,7 @@ module ldpc_syndrome
 
             for(vn=0;vn<N;vn=vn+1)
                 hard_bits[vn] <= 1'b0;
+
         end
 
         else
@@ -57,9 +58,7 @@ module ldpc_syndrome
                 //--------------------------------------------------
 
                 for(vn=0;vn<N;vn=vn+1)
-                begin
                     hard_bits[vn] <= app_llr[vn][LLR_W-1];
-                end
 
                 //--------------------------------------------------
                 // Syndrome
@@ -73,11 +72,7 @@ module ldpc_syndrome
                     parity = 1'b0;
 
                     for(e=0;e<CN_DEGREE[cn];e=e+1)
-                    begin
-
-                        parity ^= hard_bits[ CN_CONN[cn][e] ];
-
-                    end
+                        parity ^= app_llr[CN_CONN[cn][e]][LLR_W-1];
 
                     if(parity)
                         success = 1'b0;
