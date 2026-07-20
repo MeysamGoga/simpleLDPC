@@ -21,15 +21,16 @@ module tb_ldpc_decoder;
     logic done;
     logic success;
 
-    logic [3:0] iter_count;
+    logic [N-1:0] decoded_bits;
 
-    logic hard_bits[N];
+    iter_t iter_count;
+
 
     //----------------------------------------------------------
     // DUT
     //----------------------------------------------------------
 
-    ldpc_decoder dut
+    ldpc_top dut
     (
         .clk(clk),
         .rst(rst),
@@ -37,12 +38,14 @@ module tb_ldpc_decoder;
         .start(start),
 
         .done(done),
+
         .success(success),
 
-        .iter_count(iter_count),
+        .decoded_bits(decoded_bits),
 
-        .hard_bits(hard_bits)
+        .iter_count(iter_count)
     );
+
 
     //----------------------------------------------------------
     // Clock
@@ -51,11 +54,15 @@ module tb_ldpc_decoder;
     initial
     begin
         clk = 1'b0;
-        forever #5 clk = ~clk;
+
+        forever
+            #5 clk = ~clk;
+
     end
 
+
     //----------------------------------------------------------
-    // Reset
+    // Test Sequence
     //----------------------------------------------------------
 
     initial
@@ -64,22 +71,32 @@ module tb_ldpc_decoder;
         rst   = 1'b1;
         start = 1'b0;
 
-        repeat(10) @(posedge clk);
+
+        repeat(5)
+            @(posedge clk);
+
 
         rst = 1'b0;
 
-        repeat(2) @(posedge clk);
+
+        repeat(2)
+            @(posedge clk);
+
 
         start = 1'b1;
 
+
         @(posedge clk);
+
 
         start = 1'b0;
 
+
     end
 
+
     //----------------------------------------------------------
-    // Wait
+    // Result Monitor
     //----------------------------------------------------------
 
     initial
@@ -87,59 +104,29 @@ module tb_ldpc_decoder;
 
         wait(done);
 
-        $display("-------------------------------------");
-        $display("LDPC Decode Finished");
-        $display("-------------------------------------");
 
-        if(success)
-            $display("Decode SUCCESS");
-        else
-            $display("Decode FAILED");
+        $display("--------------------------------");
+        $display("LDPC DECODER FINISHED");
+        $display("--------------------------------");
 
-        $display("Iterations = %0d",iter_count);
+        $display("SUCCESS = %0d",success);
 
-        $display("");
+        $display("ITERATIONS = %0d",iter_count);
 
-        $display("Decoded Bits");
+        $display("BITS = ");
 
-        for(int i=0;i<N;i++)
-        begin
+        for(int i=0;i<N;i=i+1)
+            $write("%0d ",decoded_bits[i]);
 
-            $write("%0d ",hard_bits[i]);
-
-        end
 
         $display("");
 
-        repeat(20) @(posedge clk);
+        #50;
 
         $finish;
 
     end
 
-    //----------------------------------------------------------
-    // Monitor
-    //----------------------------------------------------------
-
-    initial
-    begin
-
-        $display("");
-        $display("=========================================");
-        $display(" LDPC Decoder Simulation");
-        $display("=========================================");
-        $display("");
-
-        $monitor(
-            "T=%0t start=%0b done=%0b success=%0b iter=%0d",
-            $time,
-            start,
-            done,
-            success,
-            iter_count
-        );
-
-    end
 
     //----------------------------------------------------------
     // Waveform
@@ -149,9 +136,11 @@ module tb_ldpc_decoder;
     begin
 
         $dumpfile("ldpc_decoder.vcd");
+
         $dumpvars(0,tb_ldpc_decoder);
 
     end
+
 
 endmodule
 
