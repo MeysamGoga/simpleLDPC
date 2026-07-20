@@ -42,8 +42,7 @@ module ldpc_top
 
     genvar i;
     generate
-        for(i=0;i<N;i=i+1)
-        begin
+        for(i=0;i<N;i=i+1) begin
             assign decoded_bits[i] = decoded_bits_array[i];
         end
     endgenerate
