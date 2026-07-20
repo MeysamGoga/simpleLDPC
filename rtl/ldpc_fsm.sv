@@ -30,35 +30,20 @@ module ldpc_fsm
 
     state_t state;
     state_t next_state;
-
     iter_t iter;
 
-    //----------------------------------------------------------
     // State Register
-    //----------------------------------------------------------
+    always_ff @(posedge clk or posedge rst) begin
+        if(rst) begin				iter  <= '0;	state <= ST_RESET;
+        end else begin								state <= next_state;
 
-    always_ff @(posedge clk or posedge rst)
-    begin
-        if(rst)
-        begin
-            state <= ST_RESET;
-            iter  <= '0;
-        end
-        else
-        begin
-            state <= next_state;
-
-            if(state == ST_INIT)
-                iter <= '0;
+            if(state == ST_INIT)	iter <= '0;
             else if(state == ST_SYNDROME && syndrome_done && !success)
-                iter <= iter + 1'b1;
+									iter <= iter + 1'b1;
         end
     end
 
-    //----------------------------------------------------------
     // Next-State Logic
-    //----------------------------------------------------------
-
     always_comb
     begin
 
@@ -72,60 +57,35 @@ module ldpc_fsm
 
         case(state)
 
-            ST_RESET:
-            begin
-                if(start)
-                    next_state = ST_INIT;
+            ST_RESET:		begin
+                if(start)							next_state = ST_INIT;
             end
 
-            ST_INIT:
-            begin
-                init = 1'b1;
-                next_state = ST_CN_UPDATE;
+            ST_INIT:		begin	init = 1'b1;	next_state = ST_CN_UPDATE;
             end
 
-            ST_CN_UPDATE:
-            begin
-                cn_start = 1'b1;
-
-                if(cn_done)
-                    next_state = ST_VN_UPDATE;
+            ST_CN_UPDATE:	begin	cn_start = 1'b1;
+                if(cn_done)							next_state = ST_VN_UPDATE;
             end
 
-            ST_VN_UPDATE:
-            begin
-                vn_start = 1'b1;
-
-                if(vn_done)
-                    next_state = ST_SYNDROME;
+            ST_VN_UPDATE:	begin	vn_start = 1'b1;
+                if(vn_done)							next_state = ST_SYNDROME;
             end
 
-            ST_SYNDROME:
-            begin
-                syndrome_start = 1'b1;
+            ST_SYNDROME:	begin	syndrome_start = 1'b1;
 
-                if(syndrome_done)
-                begin
-                    if(success)
-                        next_state = ST_DONE;
-                    else if(iter >= (MAX_ITER-1))
-                        next_state = ST_DONE;
-                    else
-                        next_state = ST_CN_UPDATE;
+                if(syndrome_done) begin
+                    if(success)						next_state = ST_DONE;
+                    else if(iter >= (MAX_ITER-1))	next_state = ST_DONE;
+                    else                        	next_state = ST_CN_UPDATE;
                 end
             end
 
-            ST_DONE:
-            begin
-                done = 1'b1;
-
-                if(!start)
-                    next_state = ST_RESET;
+            ST_DONE:		begin	done = 1'b1;
+                if(!start)							next_state = ST_RESET;
             end
 
-            default:
-            begin
-                next_state = ST_RESET;
+            default:		begin					next_state = ST_RESET;
             end
 
         endcase
