@@ -41,15 +41,10 @@ module ldpc_vn_update
     );
 
         int i;
-		
-        begin
-            edge_index = -1;
-
+        begin									edge_index = -1;
             for(i=0;i<CN_DEGREE[cn_id];i=i+1) begin
-                if(CN_CONN[cn_id][i]==vn_id)
-                    edge_index=i;
+                if(CN_CONN[cn_id][i]==vn_id)	edge_index = i;
             end
-
         end
 
     endfunction
@@ -62,9 +57,7 @@ module ldpc_vn_update
             done <= 1'b0;
             for(vn=0;vn<N;vn=vn+1)	app_llr[vn] <= '0;
 
-            for(cn=0;cn<M;cn=cn+1)
-                for(edge=0;edge<MAX_CN_DEG;edge=edge+1)
-                    vn_to_cn[cn][edge] <= '0';
+            for(cn=0;cn<M;cn=cn+1)	for(edge=0;edge<MAX_CN_DEG;edge=edge+1)	vn_to_cn[cn][edge] <= '0';
 
         end
 
