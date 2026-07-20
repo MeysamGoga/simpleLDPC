@@ -85,27 +85,19 @@ module ldpc_decoder
 
     end
 
-    //----------------------------------------------------------
     // Check Node Update
-    //----------------------------------------------------------
-
-    ldpc_cn_update u_cn_update
-    (
+    ldpc_cn_update u_cn_update(
         .clk(clk),
         .rst(rst),
 
         .start(cn_start),
         .done(cn_done),
-        .vn_to_cn(vn_to_cn),
-        .cn_to_vn(cn_to_vn)
+        .vn_to_cn(vn_to_cn),	// output
+        .cn_to_vn(cn_to_vn)		// input
     );
 
-    //----------------------------------------------------------
     // Variable Node Update
-    //----------------------------------------------------------
-
-    ldpc_vn_update u_vn_update
-    (
+    ldpc_vn_update u_vn_update(
         .clk(clk),
         .rst(rst),
 
@@ -117,12 +109,8 @@ module ldpc_decoder
         .app_llr(app_llr)
     );
 
-    //----------------------------------------------------------
     // Syndrome Check
-    //----------------------------------------------------------
-
-    ldpc_syndrome u_syndrome
-    (
+    ldpc_syndrome u_syndrome(
         .clk(clk),
         .rst(rst),
 
@@ -133,12 +121,8 @@ module ldpc_decoder
         .hard_bits(decoded_bits)
     );
 
-    //----------------------------------------------------------
     // FSM Controller
-    //----------------------------------------------------------
-
-    ldpc_fsm u_fsm
-    (
+    ldpc_fsm u_fsm(
         .clk(clk),
         .rst(rst),
 
