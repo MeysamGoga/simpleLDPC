@@ -32,17 +32,11 @@ module ldpc_cn_update
     always_ff @(posedge clk or posedge rst) begin
 
         if(rst) begin
-
             done <= 1'b0;
-
-            for(cn=0;cn<M;cn=cn+1)
-                for(e=0;e<MAX_CN_DEG;e=e+1)
-                    cn_to_vn[cn][e] <= '0;
+            for(cn=0;cn<M;cn=cn+1)	for(e=0;e<MAX_CN_DEG;e=e+1)	cn_to_vn[cn][e] <= '0;
 
         end else begin
-
             done <= 1'b0;
-
             if(start) begin
                 for(cn=0;cn<M;cn=cn+1) begin
 
@@ -58,9 +52,7 @@ module ldpc_cn_update
                     min_index = 0;
 
                     for(e=0;e<CN_DEGREE[cn];e=e+1) begin
-
                         mag = abs_llr(vn_to_cn[cn][e]);
-
                         if(mag < min1) begin		min2 = min1;
                             min1 = mag;
                             min_index = e;
@@ -71,25 +63,16 @@ module ldpc_cn_update
 
                     // Generate CN messages
                     for(e=0;e<CN_DEGREE[cn];e=e+1) begin
-
                         if(e == min_index)	mag = min2;
                         else				mag = min1;
-
                         out_sign = parity_sign ^ sign_llr(vn_to_cn[cn][e]);
-
                         if(out_sign)	cn_to_vn[cn][e] <= -mag;
                         else			cn_to_vn[cn][e] <= mag;
-
                     end
-
                 end
-
                 done <= 1'b1;
-
             end
-
         end
-
     end
 
 endmodule
