@@ -1,3 +1,7 @@
+//==============================================================
+// File : rtl/ldpc_vn_update.sv
+//==============================================================
+
 `timescale 1ns/1ps
 `default_nettype none
 
@@ -26,35 +30,40 @@ module ldpc_vn_update
     import ldpc_h_matrix_pkg::*;
 
     integer vn;
-    integer edge;
     integer cn;
     integer k;
+    integer edge;
+    integer edge2;
 
     logic signed [15:0] sum;
 
-    function automatic int find_edge
+    //----------------------------------------------------------
+    // Find VN index inside one CN
+    //----------------------------------------------------------
+
+    function automatic int edge_index
     (
         input int cn_id,
         input int vn_id
     );
 
-        integer i;
+        int i;
 
         begin
 
-            find_edge = -1;
+            edge_index = -1;
 
-            for(i=0;i<MAX_CN_DEG;i=i+1)
+            for(i=0;i<CN_DEGREE[cn_id];i=i+1)
             begin
-
                 if(CN_CONN[cn_id][i]==vn_id)
-                    find_edge=i;
-
+                    edge_index=i;
             end
 
         end
 
     endfunction
+
+    //----------------------------------------------------------
 
     always_ff @(posedge clk or posedge rst)
     begin
@@ -69,7 +78,7 @@ module ldpc_vn_update
 
             for(cn=0;cn<M;cn=cn+1)
                 for(edge=0;edge<MAX_CN_DEG;edge=edge+1)
-                    vn_to_cn[cn][edge] <= '0;
+                    vn_to_cn[cn][edge] <= '0';
 
         end
 
@@ -95,19 +104,18 @@ module ldpc_vn_update
 
                         cn = VN_CONN[vn][k];
 
-                        edge = find_edge(cn,vn);
+                        edge = edge_index(cn,vn);
 
-                        if(edge!=-1)
-                            sum = sum + cn_to_vn[cn][edge];
+                        sum += cn_to_vn[cn][edge];
 
                     end
 
-                    app_llr[vn] <= sat8(sum);
+                    app_llr[vn] <= sat_llr(sum);
 
                 end
 
                 //--------------------------------------------------
-                // Extrinsic Messages
+                // Extrinsic messages
                 //--------------------------------------------------
 
                 for(vn=0;vn<N;vn=vn+1)
@@ -118,28 +126,34 @@ module ldpc_vn_update
 
                         cn = VN_CONN[vn][k];
 
-                        edge = find_edge(cn,vn);
+                        edge = edge_index(cn,vn);
 
                         sum = channel_llr[vn];
 
-                        for(integer j=0;
-                            j<VN_DEGREE[vn];
-                            j=j+1)
+                        for(int j=0;j<VN_DEGREE[vn];j=j+1)
                         begin
 
-                            integer cn2;
-                            integer edge2;
-
-                            cn2 = VN_CONN[vn][j];
-
-                            edge2 = find_edge(cn2,vn);
-
                             if(j!=k)
-                                sum = sum + cn_to_vn[cn2][edge2];
+                            begin
+
+                                edge2 = edge_index(
+                                            VN_CONN[vn][j],
+                                            vn
+                                        );
+
+                                sum += cn_to_vn
+                                [
+                                    VN_CONN[vn][j]
+                                ]
+                                [
+                                    edge2
+                                ];
+
+                            end
 
                         end
 
-                        vn_to_cn[cn][edge] <= sat8(sum);
+                        vn_to_cn[cn][edge] <= sat_llr(sum);
 
                     end
 
