@@ -11,15 +11,10 @@ module ldpc_syndrome
     input  logic rst,
 
     input  logic start,
-
-    input  ldpc_pkg::llr_t app_llr
-        [ldpc_pkg::N],
-
+    input  ldpc_pkg::llr_t app_llr [ldpc_pkg::N],
     output logic done,
     output logic success,
-
-    output logic hard_bits
-        [ldpc_pkg::N]
+    output logic hard_bits [ldpc_pkg::N]
 );
 
     import ldpc_pkg::*;
@@ -31,60 +26,32 @@ module ldpc_syndrome
 
     logic parity;
 
-    always_ff @(posedge clk or posedge rst)
-    begin
+    always_ff @(posedge clk or posedge rst) begin
 
-        if(rst)
-        begin
-
+        if(rst) begin
             done    <= 1'b0;
             success <= 1'b0;
+            for(vn=0;vn<N;vn=vn+1)	hard_bits[vn] <= 1'b0;
 
-            for(vn=0;vn<N;vn=vn+1)
-                hard_bits[vn] <= 1'b0;
-
-        end
-
-        else
-        begin
-
+        end else begin
             done <= 1'b0;
+            if(start) begin
 
-            if(start)
-            begin
-
-                //--------------------------------------------------
                 // Hard Decision
-                //--------------------------------------------------
+                for(vn=0;vn<N;vn=vn+1)	hard_bits[vn] <= app_llr[vn][LLR_W-1];
 
-                for(vn=0;vn<N;vn=vn+1)
-                    hard_bits[vn] <= app_llr[vn][LLR_W-1];
-
-                //--------------------------------------------------
                 // Syndrome
-                //--------------------------------------------------
-
                 success = 1'b1;
 
-                for(cn=0;cn<M;cn=cn+1)
-                begin
-
+                for(cn=0;cn<M;cn=cn+1) begin
                     parity = 1'b0;
-
-                    for(e=0;e<CN_DEGREE[cn];e=e+1)
-                        parity ^= app_llr[CN_CONN[cn][e]][LLR_W-1];
-
-                    if(parity)
-                        success = 1'b0;
+                    for(e=0;e<CN_DEGREE[cn];e=e+1)	parity ^= app_llr[CN_CONN[cn][e]][LLR_W-1];
+                    if(parity)	success = 1'b0;
 
                 end
-
                 done <= 1'b1;
-
             end
-
         end
-
     end
 
 endmodule
