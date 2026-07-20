@@ -15,30 +15,31 @@ module ldpc_decoder
     output logic done,
     output logic success,
 
-    output logic [3:0] iter_count,
+    output ldpc_pkg::iter_t iter_count,
 
-    output logic hard_bits
+    output logic decoded_bits
         [ldpc_pkg::N]
 );
 
     import ldpc_pkg::*;
-    import ldpc_h_matrix_pkg::*;
 
     //----------------------------------------------------------
-    // Internal Memories
+    // Internal memories
     //----------------------------------------------------------
 
     llr_t channel_llr [N];
-    llr_t app_llr     [N];
 
     llr_t vn_to_cn [M][MAX_CN_DEG];
+
     llr_t cn_to_vn [M][MAX_CN_DEG];
 
+    llr_t app_llr [N];
+
     //----------------------------------------------------------
-    // FSM Signals
+    // Control signals
     //----------------------------------------------------------
 
-    logic init_en;
+    logic init;
 
     logic cn_start;
     logic vn_start;
@@ -48,12 +49,12 @@ module ldpc_decoder
     logic vn_done;
     logic syndrome_done;
 
+
     //----------------------------------------------------------
-    // Initialization
+    // Test Channel Initialization
     //----------------------------------------------------------
 
     integer i;
-    integer j;
 
     always_ff @(posedge clk or posedge rst)
     begin
@@ -66,25 +67,20 @@ module ldpc_decoder
 
         end
 
-        else if(init_en)
+        else if(init)
         begin
 
-            //--------------------------------------------------
-            // Temporary Fixed LLR
-            // (Simulation values)
-            //--------------------------------------------------
+            channel_llr[0]  <=  8'sd42;
+            channel_llr[1]  <=  8'sd38;
+            channel_llr[2]  <=  8'sd35;
+            channel_llr[3]  <=  8'sd51;
+            channel_llr[4]  <=  8'sd29;
 
-            channel_llr[ 0] <=  8'sd42;
-            channel_llr[ 1] <=  8'sd38;
-            channel_llr[ 2] <=  8'sd35;
-            channel_llr[ 3] <=  8'sd51;
-            channel_llr[ 4] <=  8'sd29;
-
-            channel_llr[ 5] <=  8'sd41;
-            channel_llr[ 6] <=  8'sd36;
-            channel_llr[ 7] <=  8'sd47;
-            channel_llr[ 8] <=  8'sd32;
-            channel_llr[ 9] <=  8'sd44;
+            channel_llr[5]  <=  8'sd41;
+            channel_llr[6]  <=  8'sd36;
+            channel_llr[7]  <=  8'sd47;
+            channel_llr[8]  <=  8'sd32;
+            channel_llr[9]  <=  8'sd44;
 
             channel_llr[10] <=  8'sd40;
             channel_llr[11] <=  8'sd39;
@@ -98,28 +94,16 @@ module ldpc_decoder
             channel_llr[18] <=  8'sd45;
             channel_llr[19] <=  8'sd33;
 
-            for(i=0;i<M;i=i+1)
-            begin
-
-                for(j=0;j<MAX_CN_DEG;j=j+1)
-                begin
-
-                    vn_to_cn[i][j] <= '0;
-                    cn_to_vn[i][j] <= '0;
-
-                end
-
-            end
-
         end
 
     end
 
+
     //----------------------------------------------------------
-    // Check Node Engine
+    // Check Node Update
     //----------------------------------------------------------
 
-    ldpc_cn_update u_cn
+    ldpc_cn_update u_cn_update
     (
         .clk(clk),
         .rst(rst),
@@ -131,11 +115,12 @@ module ldpc_decoder
         .cn_to_vn(cn_to_vn)
     );
 
+
     //----------------------------------------------------------
-    // Variable Node Engine
+    // Variable Node Update
     //----------------------------------------------------------
 
-    ldpc_vn_update u_vn
+    ldpc_vn_update u_vn_update
     (
         .clk(clk),
         .rst(rst),
@@ -152,11 +137,12 @@ module ldpc_decoder
         .app_llr(app_llr)
     );
 
+
     //----------------------------------------------------------
-    // Syndrome Checker
+    // Syndrome Check
     //----------------------------------------------------------
 
-    ldpc_syndrome u_syn
+    ldpc_syndrome u_syndrome
     (
         .clk(clk),
         .rst(rst),
@@ -169,11 +155,12 @@ module ldpc_decoder
 
         .success(success),
 
-        .hard_bits(hard_bits)
+        .hard_bits(decoded_bits)
     );
 
+
     //----------------------------------------------------------
-    // FSM
+    // FSM Controller
     //----------------------------------------------------------
 
     ldpc_fsm u_fsm
@@ -185,11 +172,12 @@ module ldpc_decoder
 
         .cn_done(cn_done),
         .vn_done(vn_done),
+
         .syndrome_done(syndrome_done),
 
         .success(success),
 
-        .init_en(init_en),
+        .init(init),
 
         .cn_start(cn_start),
         .vn_start(vn_start),
@@ -199,6 +187,7 @@ module ldpc_decoder
 
         .iter_count(iter_count)
     );
+
 
 endmodule
 
