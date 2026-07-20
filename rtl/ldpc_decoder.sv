@@ -19,19 +19,13 @@ module ldpc_decoder
 
     import ldpc_pkg::*;
 
-    //----------------------------------------------------------
     // Internal memories
-    //----------------------------------------------------------
-
     llr_t channel_llr	[N];
     llr_t vn_to_cn		[M][MAX_CN_DEG];
     llr_t cn_to_vn		[M][MAX_CN_DEG];
     llr_t app_llr		[N];
 
-    //----------------------------------------------------------
     // Control signals
-    //----------------------------------------------------------
-
     logic init;
 
     logic cn_start;
@@ -42,10 +36,7 @@ module ldpc_decoder
     logic vn_done;
     logic syndrome_done;
 
-    //----------------------------------------------------------
     // Test Channel Initialization
-    //----------------------------------------------------------
-
     integer i;
 
     always_ff @(posedge clk or posedge rst) begin
